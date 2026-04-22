@@ -39,20 +39,21 @@ Once the server is running:
 
 ## Testing with Sample Data
 
-1. The project includes a `sample_reconciliation.xlsx` file for testing.
-2. Upload it via the Swagger UI or use curl:
+1. The project includes `current_year.xlsx` and `previous_year.xlsx` files for testing.
+2. Upload both files via the Swagger UI or use curl:
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/api/v1/process" \
-  -F "file=@sample_reconciliation.xlsx"
+  -F "current_year_file=@current_year.xlsx" \
+  -F "previous_year_file=@previous_year.xlsx"
 ```
 
 ## Project Architecture
 
 ### Three Main APIs
 
-1. **POST /api/v1/process** - Upload and analyze Excel workbook
-   - Input: Excel file with current year and previous year sheets
+1. **POST /api/v1/process** - Upload and analyze Excel files
+   - Input: Two Excel files (current year and previous year)
    - Output: JSON with parsed rows, matches, validation issues, impact preview
 
 2. **POST /api/v1/reconcile** - Finalize matching and calculate impacts

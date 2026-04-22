@@ -4,9 +4,9 @@ A FastAPI backend for Excel-based accounting reconciliation workflow.
 
 ## Features
 
-- **Excel Upload & Processing**: Upload workbooks with current year and previous year sheets
+- **Two-File Excel Upload**: Upload separate current year and previous year Excel files
 - **Data Validation**: Validate required headers and formula calculations
-- **Intelligent Matching**: Exact and fuzzy matching of project names between years
+- **Intelligent Matching**: Exact and fuzzy matching of project names across files
 - **Impact Calculation**: Automated WIP (Work-in-Progress) and FAR (Fixed Asset Retirement) impact calculations
 - **Excel Export**: Generate detailed reconciliation reports as Excel workbooks
 
@@ -77,10 +77,11 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ### 1. POST `/api/v1/process`
 
-Upload and process an Excel workbook containing current year and previous year data.
+Upload and process two separate Excel files (current year and previous year).
 
 **Request:**
-- `file`: Excel workbook (.xlsx)
+- `current_year_file`: Excel file (.xlsx) containing current year data
+- `previous_year_file`: Excel file (.xlsx) containing previous year data
 
 **Response:**
 ```json
