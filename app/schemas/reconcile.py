@@ -30,10 +30,21 @@ class ReconcileResult(BaseModel):
     current_row_number: int
     previous_row_number: Optional[int] = None
     project_name: str
+    current_project: Optional[str] = None  # Alias for export
+    previous_project: Optional[str] = None  # For export when different
     current_values: Dict[str, Any]
     previous_values: Optional[Dict[str, Any]] = None
     wip_impact: Optional[float] = None
     far_impact: Optional[float] = None
+    
+    def __init__(self, **data):
+        super().__init__(**data)
+        # Set current_project if not explicitly set
+        if not self.current_project:
+            self.current_project = self.project_name
+        # Set previous_project if not explicitly set
+        if not self.previous_project and self.previous_row_number:
+            self.previous_project = self.project_name
 
 
 class ReconcileResponse(BaseModel):

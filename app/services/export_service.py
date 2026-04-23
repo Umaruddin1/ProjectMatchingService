@@ -126,15 +126,19 @@ class ExportService:
             current_vals = match.get("current_values", {})
             previous_vals = match.get("previous_values", {})
             
+            # Handle both "project_name" and "current_project"/"previous_project" field names
+            current_project = match.get("current_project") or match.get("project_name", "")
+            previous_project = match.get("previous_project", "")
+            
             data = [
                 match.get("current_row_number"),
-                match.get("current_project"),
+                current_project,
                 match.get("previous_row_number"),
-                match.get("previous_project"),
-                current_vals.get("opening_balance", 0),
+                previous_project,
+                current_vals.get("opening_balance", 0) or current_vals.get("as_of_31_mar", 0),
                 current_vals.get("additions", 0),
                 current_vals.get("transfer", 0),
-                current_vals.get("closing_balance", 0),
+                current_vals.get("closing_balance", 0) or current_vals.get("as_on_31_mar", 0),
                 previous_vals.get("opening_balance", 0),
                 previous_vals.get("additions", 0),
                 previous_vals.get("transfer", 0),
