@@ -10,8 +10,17 @@ class ApprovedMatch(BaseModel):
     match_type: str = "approved"
 
 
+class ParsedRowForReconcile(BaseModel):
+    """Row data for reconciliation."""
+    row_number: int
+    project_name: str
+    values: Dict[str, Any]
+
+
 class ReconcileRequest(BaseModel):
     """Request for reconciliation endpoint."""
+    current_year_rows: List[ParsedRowForReconcile]
+    previous_year_rows: List[ParsedRowForReconcile]
     approved_matches: List[ApprovedMatch]
     manual_overrides: Optional[Dict[int, int]] = None  # current_row -> previous_row
 
@@ -21,8 +30,8 @@ class ReconcileResult(BaseModel):
     current_row_number: int
     previous_row_number: Optional[int] = None
     project_name: str
-    current_values: Dict[str, float]
-    previous_values: Optional[Dict[str, float]] = None
+    current_values: Dict[str, Any]
+    previous_values: Optional[Dict[str, Any]] = None
     wip_impact: Optional[float] = None
     far_impact: Optional[float] = None
 

@@ -1,7 +1,7 @@
 """Reconcile endpoint."""
 import logging
-from typing import List, Dict, Any
-from fastapi import APIRouter, HTTPException
+from typing import List, Dict, Any, Optional
+from fastapi import APIRouter, HTTPException, Body
 from app.core.exceptions import ProcessingException
 from app.services.reconciliation_service import ReconciliationService
 from app.schemas.reconcile import ReconcileRequest, ReconcileResponse, ReconcileResult
@@ -9,86 +9,88 @@ from app.schemas.reconcile import ReconcileRequest, ReconcileResponse, Reconcile
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# In-memory store for process results (normally would be session-based or database)
-_process_results = {}
-
-
-def store_process_result(session_id: str, result: Dict[str, Any]):
-    """Store process result for later reconciliation."""
-    _process_results[session_id] = result
-
-
-def get_process_result(session_id: str) -> Dict[str, Any]:
-    """Retrieve stored process result."""
-    return _process_results.get(session_id)
-
 
 @router.post("/reconcile", response_model=ReconcileResponse)
-async def reconcile(
-    request: ReconcileRequest,
-    session_id: str = None  # Would be from cookie/header in production
-) -> ReconcileResponse:
+async def reconcile(request: ReconcileRequest) -> ReconcileResponse:
     """
     Reconcile and finalize matches.
     
-    - Accept approved/manual mappings from frontend
-    - Recalculate final impacts
+    Expected request body:
+    {
+      "current_year_rows": [...],
+      "previous_year_rows": [...],
+      "approved_matches": [
+        {
+          "current_row_number": 2,
+          "previous_row_number": 2,
+          "match_type": "exact"
+        }
+      ],
+      "manual_overrides": {}
+    }
+    
+    - Accept approved/manual mappings from frontend (from /process response)
+    - Recalculate final impacts using actual row data
     - Return final reconciled JSON
     """
-    logger.info(f"Reconciliation requested with {len(request.approved_matches)} matches")
+    logger.info(f"Reconciliation requested with {len(request.approved_matches)} approved matches")
     
     try:
-        # In production, would retrieve from session/database
-        # For now, we'll build matches from the request
-        
-        # Convert approved matches to internal format
-        internal_matches = []
-        for approved in request.approved_matches:
-            internal_matches.append({
-                "current_idx": approved.current_row_number - 2,  # Adjust for 0-indexing and header
-                "previous_idx": approved.previous_row_number - 2 if approved.previous_row_number else None,
-            })
-        
-        # Apply manual overrides if provided
-        if request.manual_overrides:
-            for current_row, previous_row in request.manual_overrides.items():
-                internal_matches.append({
-                    "current_idx": current_row - 2,
-                    "previous_idx": previous_row - 2,
-                })
-        
-        # In a real scenario, we'd have actual row data from the process step
-        # For now, return a valid response structure
+        # Extract row data from request
+        current_rows = {row.row_number: row for row in request.current_year_rows}
+        previous_rows = {row.row_number: row for row in request.previous_year_rows}
         
         reconciled_matches: List[ReconcileResult] = []
         total_wip = 0.0
         total_far = 0.0
         
-        for match in internal_matches:
-            if match.get("previous_idx") is not None:
-                # Calculate impacts (using dummy data for now)
-                wip = 0.0
-                far = 0.0
-                
-                reconciled_matches.append(
-                    ReconcileResult(
-                        current_row_number=match["current_idx"] + 2,
-                        previous_row_number=match["previous_idx"] + 2 if match["previous_idx"] else None,
-                        project_name="Project",
-                        current_values={},
-                        previous_values={},
-                        wip_impact=wip,
-                        far_impact=far,
-                    )
+        # Process approved matches
+        for approved_match in request.approved_matches:
+            current_row_num = approved_match.current_row_number
+            previous_row_num = approved_match.previous_row_number
+            
+            # Get row data
+            current_row = current_rows.get(current_row_num)
+            previous_row = previous_rows.get(previous_row_num) if previous_row_num else None
+            
+            if not current_row:
+                logger.warning(f"Current row {current_row_num} not found")
+                continue
+            
+            if previous_row_num and not previous_row:
+                logger.warning(f"Previous row {previous_row_num} not found")
+                continue
+            
+            # Calculate impacts
+            wip_impact = 0.0
+            far_impact = 0.0
+            
+            if previous_row:
+                impacts = ReconciliationService.calculate_impacts_for_match(
+                    current_row.values,
+                    previous_row.values
                 )
-                total_wip += wip
-                total_far += far
+                wip_impact = impacts.get("wip_impact", 0.0)
+                far_impact = impacts.get("far_impact", 0.0)
+            
+            reconciled_matches.append(
+                ReconcileResult(
+                    current_row_number=current_row_num,
+                    previous_row_number=previous_row_num,
+                    project_name=current_row.project_name,
+                    current_values=current_row.values,
+                    previous_values=previous_row.values if previous_row else None,
+                    wip_impact=wip_impact,
+                    far_impact=far_impact,
+                )
+            )
+            total_wip += wip_impact
+            total_far += far_impact
         
         response = ReconcileResponse(
             success=True,
             reconciled_matches=reconciled_matches,
-            total_matched=len([m for m in internal_matches if m.get("previous_idx") is not None]),
-            total_unmatched_current=len([m for m in internal_matches if m.get("previous_idx") is None]),
+            total_matched=len([m for m in reconciled_matches if m.previous_row_number]),
             total_wip_impact=total_wip,
             total_far_impact=total_far,
         )
