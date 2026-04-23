@@ -46,15 +46,14 @@ class Settings:
     # Required headers - will be normalized and matched
     CURRENT_YEAR_REQUIRED_HEADERS = {
         "project name",
-        "as of 31 mar",
         "additions",
         "transfer",
-        "as on 31 mar",
+        "closing balance",  # Can be "as on 31 mar", "as on 31 mar 25", etc.
     }
     
     PREVIOUS_YEAR_REQUIRED_HEADERS = {
         "project name",
-        "opening balance",
+        "opening balance",  # Can include year variations like "opening balance 20/21"
         "additions",
         "transfer",
         "closing balance",

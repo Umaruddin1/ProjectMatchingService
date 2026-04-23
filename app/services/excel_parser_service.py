@@ -156,6 +156,7 @@ class ExcelParserService:
     ) -> Tuple[Dict[str, str], List[str]]:
         """
         Validate headers and extract mapping to required fields.
+        Uses flexible matching to handle variations in header names.
         
         Args:
             headers: Raw headers from sheet
@@ -171,10 +172,46 @@ class ExcelParserService:
         normalized = ExcelParserService.normalize_headers(headers)
         validation_issues = []
         
-        missing_headers = required_fields - set(normalized.keys())
+        # Define header aliases for flexible matching
+        header_aliases = {
+            "closing balance": ["as on", "closing balance", "balance on", "final balance"],
+            "opening balance": ["opening balance", "balance as on"],
+            "additions": ["additions", "addition"],
+            "transfer": ["transfer", "transfers"],
+            "project name": ["project name", "project"]
+        }
+        
+        # Build a mapping of required fields to actual headers with flexible matching
+        header_map = {}
+        matched_normalized = set()
+        
+        for required_field in required_fields:
+            # Try exact match first
+            if required_field in normalized:
+                header_map[required_field] = normalized[required_field]
+                matched_normalized.add(required_field)
+            else:
+                # Get aliases for this field
+                aliases = header_aliases.get(required_field, [required_field])
+                
+                # Try to find a match using aliases
+                for alias in aliases:
+                    found = False
+                    for norm_header, orig_header in normalized.items():
+                        # Check if alias appears in the normalized header
+                        if alias in norm_header:
+                            header_map[required_field] = orig_header
+                            matched_normalized.add(required_field)
+                            found = True
+                            break
+                    if found:
+                        break
+        
+        missing_headers = required_fields - matched_normalized
         if missing_headers:
             msg = f"Missing required headers in {sheet_type}: {missing_headers}"
             logger.error(msg)
+            logger.error(f"Available headers: {list(normalized.keys())}")
             raise ValidationException(msg)
         
-        return normalized, validation_issues
+        return header_map, validation_issues
