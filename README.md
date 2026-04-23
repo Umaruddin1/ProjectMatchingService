@@ -73,6 +73,21 @@ pytest tests/ -v
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+## Large File Support
+
+**Maximum upload size**: 100 MB per file
+
+The API is optimized to handle:
+- Files with 1,500+ projects
+- Complex Excel workbooks with formulas
+- Multiple data types (text, numbers, blanks)
+
+See [FILE_UPLOAD_GUIDE.md](FILE_UPLOAD_GUIDE.md) for:
+- Configuration details
+- Frontend integration examples
+- Performance tuning tips
+- Troubleshooting guide
+
 ## API Endpoints
 
 ### 1. POST `/api/v1/process`

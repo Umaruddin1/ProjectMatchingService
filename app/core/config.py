@@ -9,8 +9,8 @@ class Settings:
     API_VERSION = "v1"
     
     # File upload config
-    MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB
-    ALLOWED_EXTENSIONS = {".xlsx", ".xls"}
+    MAX_UPLOAD_SIZE = 100 * 1024 * 1024  # 100 MB - supports large Excel files with 1500+ rows
+    ALLOWED_EXTENSIONS = {".xlsx", ".xls", ".xlsm"}  # Added .xlsm support
     
     # Matching config
     FUZZY_MATCH_THRESHOLD = 0.80
@@ -26,6 +26,8 @@ class Settings:
         "cy",
         "year 1",
         "year1",
+        "summary sheet",
+        "summary",
     }
     
     # Previous year sheet names (variations to handle)
@@ -36,6 +38,9 @@ class Settings:
         "py",
         "year 0",
         "year0",
+        "ref_summary_sheet",
+        "ref_summary sheet",
+        "reference summary",
     }
     
     # Required headers - will be normalized and matched
