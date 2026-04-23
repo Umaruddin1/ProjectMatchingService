@@ -73,7 +73,24 @@ pytest tests/ -v
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## Large File Support
+## Data Format Support
+
+The API now supports flexible header naming for Excel files:
+
+### Current Year File Headers
+- **Project Name**: Required (exact name)
+- **Closing Balance**: Can be "As on 31 Mar", "As on 31 Mar 25", "Closing Balance", etc.
+- **Additions**: Required (exact name)
+- **Transfer**: Required (exact name)
+
+### Previous Year File Headers
+- **Project Name**: Required (exact name)
+- **Opening Balance**: Can be "Opening Balance", "Opening Balance 20/21", etc.
+- **Closing Balance**: Required (exact name)
+- **Additions**: Required (exact name)
+- **Transfer**: Required (exact name)
+
+Header matching is **flexible and case-insensitive**. The system will automatically recognize variations in column names.
 
 **Maximum upload size**: 100 MB per file
 
