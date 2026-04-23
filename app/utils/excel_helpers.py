@@ -32,32 +32,40 @@ def get_sheet_names(workbook) -> List[str]:
 def read_sheet_data(sheet) -> List[Dict[str, any]]:
     """
     Read data from a sheet into list of dicts.
-    First row is assumed to be headers.
+    Robustly detect the header row as the first row with at least 2 non-empty cells.
     
     Args:
         sheet: Worksheet object
         
     Returns:
-        List of row dicts
+        List of row dicts, header list
     """
     rows = []
     headers = None
+    header_row_idx = None
     
+    # Find header row: first row with >=2 non-empty cells
     for idx, row in enumerate(sheet.iter_rows(values_only=True), 1):
-        if idx == 1:
-            headers = [h for h in row]
+        non_empty = [cell for cell in row if cell is not None and str(cell).strip() != '']
+        if headers is None and len(non_empty) >= 2:
+            headers = [h if h is not None else '' for h in row]
+            header_row_idx = idx
+            break
+    if headers is None:
+        raise ValueError("No header row found in sheet")
+    
+    # Read data rows after header
+    for idx, row in enumerate(sheet.iter_rows(values_only=True), 1):
+        if idx <= header_row_idx:
             continue
-        
         if not any(row):  # Skip empty rows
             continue
-        
         row_dict = {}
         for i, header in enumerate(headers):
             if i < len(row):
                 row_dict[header] = row[i]
             else:
                 row_dict[header] = None
-        
         rows.append(row_dict)
     
     return rows, headers
