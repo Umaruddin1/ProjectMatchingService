@@ -218,6 +218,7 @@ Edit `app/core/config.py` to customize:
 - Sheet name variations
 - Required headers
 
+
 ## Running Tests
 
 ```bash
@@ -230,6 +231,25 @@ pytest tests/test_matching.py -v
 # Run with coverage
 pytest tests/ --cov=app --cov-report=html
 ```
+
+### Test Coverage (37 tests)
+
+- Excel parsing and robust header detection ✅
+- Text normalization and fuzzy matching ✅
+- Numeric value parsing (blanks, dashes, commas) ✅
+- Formula validation ✅
+- WIP and FAR impact calculations ✅
+- Two-file upload and reconciliation ✅
+
+### Real-World File Testing
+
+The system has been tested with real-world accounting Excel files:
+- **December file**: 1,557 rows with 98 year-based columns
+- **March file**: 883 rows with date-based headers
+- Successfully handles complex formatting and data structures
+- Robust header detection skips leading blank rows and metadata
+
+
 
 ## Error Handling
 
