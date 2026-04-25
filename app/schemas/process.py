@@ -39,6 +39,7 @@ class ProcessResponse(BaseModel):
     # Matching results
     exact_matches: List[Match] = []
     suggested_matches: List[SuggestedMatch] = []
+    ambiguous_matches: List[Dict[str, Any]] = []
     unmatched_current_rows: List[ParsedRow] = []
     unmatched_previous_rows: List[ParsedRow] = []
     

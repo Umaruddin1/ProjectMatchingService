@@ -78,6 +78,16 @@ class ReconciliationService:
             "wip_impact": wip_impact,
             "far_impact": far_impact,
         }
+
+    @staticmethod
+    def zero_values() -> Dict[str, float]:
+        """Return zeroed numeric values for unmatched rows."""
+        return {
+            "opening_balance": 0.0,
+            "additions": 0.0,
+            "transfer": 0.0,
+            "closing_balance": 0.0,
+        }
     
     @staticmethod
     def reconcile_matches(
@@ -146,13 +156,17 @@ class ReconciliationService:
         """
         total_wip = sum(m.get("wip_impact", 0.0) for m in reconciled_matches)
         total_far = sum(m.get("far_impact", 0.0) for m in reconciled_matches)
+
+        total_matched = sum(1 for m in reconciled_matches if m.get("match_status") == "matched")
+        total_unmatched_current = sum(1 for m in reconciled_matches if m.get("match_status") == "unmatched_current")
+        total_unmatched_previous = sum(1 for m in reconciled_matches if m.get("match_status") == "unmatched_previous")
         
         return {
             "total_current_rows": all_current_rows,
             "total_previous_rows": all_previous_rows,
-            "total_matched": len(reconciled_matches),
-            "total_unmatched_current": all_current_rows - len(reconciled_matches),
-            "total_unmatched_previous": all_previous_rows - len(reconciled_matches),
+            "total_matched": total_matched,
+            "total_unmatched_current": total_unmatched_current,
+            "total_unmatched_previous": total_unmatched_previous,
             "total_wip_impact": total_wip,
             "total_far_impact": total_far,
         }

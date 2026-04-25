@@ -101,6 +101,8 @@ class ExportService:
             "Current Project",
             "Previous Row",
             "Previous Project",
+            "Match Status",
+            "Requires Review",
             "Current Opening",
             "Current Additions",
             "Current Transfer",
@@ -129,12 +131,16 @@ class ExportService:
             # Handle both "project_name" and "current_project"/"previous_project" field names
             current_project = match.get("current_project") or match.get("project_name", "")
             previous_project = match.get("previous_project", "")
+            match_status = match.get("match_status", "matched")
+            requires_review = match.get("requires_review", False)
             
             data = [
                 match.get("current_row_number"),
                 current_project,
                 match.get("previous_row_number"),
                 previous_project,
+                match_status,
+                requires_review,
                 current_vals.get("opening_balance", 0) or current_vals.get("as_of_31_mar", 0),
                 current_vals.get("additions", 0),
                 current_vals.get("transfer", 0),
@@ -156,7 +162,7 @@ class ExportService:
         
         # Adjust column widths
         for col_idx in range(1, len(headers) + 1):
-            ws.column_dimensions[ws.cell(row=1, column=col_idx).column_letter].width = 15
+            ws.column_dimensions[ws.cell(row=1, column=col_idx).column_letter].width = 18
     
     @staticmethod
     def _create_unmatched_sheet(wb, unmatched_rows, sheet_name, header_fill, header_font, border):

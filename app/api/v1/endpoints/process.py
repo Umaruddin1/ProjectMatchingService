@@ -203,6 +203,23 @@ async def process_file(
                 "suggested_project_name": match["previous_project"],
                 "confidence": match["confidence"],
             })
+
+        formatted_ambiguous_matches = []
+        for match in ambiguous_matches:
+            formatted_ambiguous_matches.append({
+                "current_row_number": current_rows[match["current_idx"]]["row_number"],
+                "current_project_name": current_rows[match["current_idx"]]["project_name"],
+                "match_status": "ambiguous_match",
+                "requires_review": True,
+                "candidates": [
+                    {
+                        "previous_row_number": previous_rows[candidate["idx"]]["row_number"],
+                        "previous_project_name": candidate.get("project"),
+                        "confidence": candidate.get("score"),
+                    }
+                    for candidate in match.get("candidates", [])
+                ],
+            })
         
         # Calculate impact preview for exact matches
         impact_preview = []
@@ -254,6 +271,7 @@ async def process_file(
             ],
             exact_matches=formatted_exact_matches,
             suggested_matches=formatted_suggested_matches,
+            ambiguous_matches=formatted_ambiguous_matches,
             unmatched_current_rows=[
                 ParsedRow(row_number=r["row_number"],
                          project_name=r["project_name"],

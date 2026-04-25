@@ -23,11 +23,12 @@ class ReconcileRequest(BaseModel):
     previous_year_rows: List[ParsedRowForReconcile]
     approved_matches: List[ApprovedMatch]
     manual_overrides: Optional[Dict[int, int]] = None  # current_row -> previous_row
+    include_unmatched_rows: bool = True
 
 
 class ReconcileResult(BaseModel):
     """A reconciled/matched row with impacts."""
-    current_row_number: int
+    current_row_number: Optional[int] = None
     previous_row_number: Optional[int] = None
     project_name: str
     current_project: Optional[str] = None  # Alias for export
@@ -36,6 +37,9 @@ class ReconcileResult(BaseModel):
     previous_values: Optional[Dict[str, Any]] = None
     wip_impact: Optional[float] = None
     far_impact: Optional[float] = None
+    match_status: str = "matched"
+    requires_review: bool = False
+    match_type: Optional[str] = None
     
     def __init__(self, **data):
         super().__init__(**data)
@@ -61,6 +65,8 @@ class ReconcileResponse(BaseModel):
     total_previous_rows: int = 0
     total_matched: int = 0
     total_unmatched: int = 0
+    total_unmatched_current: int = 0
+    total_unmatched_previous: int = 0
     
     # Totals
     total_wip_impact: float = 0.0
