@@ -87,6 +87,10 @@ async def process_file(
                     "row_number": idx,
                     "project_name": normalized["project_name"],
                     "issue_type": "data_validation",
+                    "file_type": "current_year",
+                    "file_name": current_year_file.filename,
+                    "sheet": "Current Year",
+                    "source_label": "Current Year Sheet",
                     "description": "; ".join(normalized["validation_issues"]),
                 })
             
@@ -100,6 +104,10 @@ async def process_file(
                     "row_number": idx,
                     "project_name": normalized["project_name"],
                     "issue_type": "formula_mismatch",
+                    "file_type": "current_year",
+                    "file_name": current_year_file.filename,
+                    "sheet": "Current Year",
+                    "source_label": "Current Year Sheet",
                     "description": formula_validation["issues"][0],
                 })
             
@@ -125,6 +133,10 @@ async def process_file(
                     "row_number": idx,
                     "project_name": normalized["project_name"],
                     "issue_type": "data_validation",
+                    "file_type": "previous_year",
+                    "file_name": previous_year_file.filename,
+                    "sheet": "Previous Year",
+                    "source_label": "Previous Year Sheet",
                     "description": "; ".join(normalized["validation_issues"]),
                 })
             
@@ -138,6 +150,10 @@ async def process_file(
                     "row_number": idx,
                     "project_name": normalized["project_name"],
                     "issue_type": "formula_mismatch",
+                    "file_type": "previous_year",
+                    "file_name": previous_year_file.filename,
+                    "sheet": "Previous Year",
+                    "source_label": "Previous Year Sheet",
                     "description": formula_validation["issues"][0],
                 })
             
