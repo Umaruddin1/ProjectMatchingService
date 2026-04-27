@@ -1,14 +1,15 @@
 """Export endpoint."""
 import logging
 from typing import Dict, Any
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
 from app.core.exceptions import ExportException
+from app.core.security import get_current_username
 from app.services.export_service import ExportService
 from app.schemas.export import ExportRequest, ExportResponse
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_username)])
 
 
 @router.post("/export")

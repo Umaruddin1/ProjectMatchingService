@@ -1,13 +1,14 @@
 """Reconcile endpoint."""
 import logging
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Depends
 from app.core.exceptions import ProcessingException
+from app.core.security import get_current_username
 from app.services.reconciliation_service import ReconciliationService
 from app.schemas.reconcile import ReconcileRequest, ReconcileResponse, ReconcileResult
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_username)])
 
 
 @router.post("/reconcile", response_model=ReconcileResponse)

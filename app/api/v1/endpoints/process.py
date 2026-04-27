@@ -2,8 +2,9 @@
 import logging
 import tempfile
 from typing import List, Dict, Any
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from app.core.exceptions import ProcessingException, FileValidationException, ParsingException, ValidationException
+from app.core.security import get_current_username
 from app.services.file_validation_service import FileValidationService
 from app.services.excel_parser_service import ExcelParserService
 from app.services.normalization_service import NormalizationService
@@ -12,7 +13,7 @@ from app.services.reconciliation_service import ReconciliationService
 from app.schemas.process import ProcessResponse, ParsedRow
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_username)])
 
 
 @router.post("/process", response_model=ProcessResponse)

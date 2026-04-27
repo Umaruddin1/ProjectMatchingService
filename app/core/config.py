@@ -1,5 +1,9 @@
 """Application configuration."""
 import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 class Settings:
@@ -17,6 +21,13 @@ class Settings:
     
     # Logging
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+    # Auth
+    AUTH_USERNAME = os.getenv("AUTH_USERNAME", "admin@syncwave.live")
+    AUTH_PASSWORD = os.getenv("AUTH_PASSWORD", "Umar@123")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-this-in-production")
+    JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+    JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "120"))
     
     # Current year sheet names (variations to handle)
     CURRENT_YEAR_SHEET_NAMES = {
