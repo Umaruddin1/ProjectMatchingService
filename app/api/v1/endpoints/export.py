@@ -1,19 +1,19 @@
 """Export endpoint."""
 import logging
-from typing import Dict, Any
+from io import BytesIO
 from fastapi import APIRouter, HTTPException, Depends
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 from app.core.exceptions import ExportException
 from app.core.security import get_current_username
 from app.services.export_service import ExportService
-from app.schemas.export import ExportRequest, ExportResponse
+from app.schemas.export import ExportRequest
 
 logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Depends(get_current_username)])
 
 
 @router.post("/export")
-async def export(request: ExportRequest) -> FileResponse:
+async def export(request: ExportRequest) -> StreamingResponse:
     """
     Generate and download Excel export.
     
@@ -24,8 +24,8 @@ async def export(request: ExportRequest) -> FileResponse:
     logger.info("Export requested")
     
     try:
-        # Create export workbook
-        file_path = ExportService.create_export_workbook(
+        # Create export workbook in memory
+        file_bytes, file_name = ExportService.create_export_workbook(
             reconciled_matches=request.reconciled_matches,
             unmatched_current_rows=request.unmatched_current_rows,
             unmatched_previous_rows=request.unmatched_previous_rows,
@@ -33,13 +33,12 @@ async def export(request: ExportRequest) -> FileResponse:
             summary=request.summary,
         )
         
-        logger.info(f"Export file created: {file_path}")
-        
-        # Return file
-        return FileResponse(
-            path=file_path,
-            filename=file_path.split("\\")[-1],
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        logger.info("Export file created in memory: %s", file_name)
+
+        return StreamingResponse(
+            BytesIO(file_bytes),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{file_name}"'},
         )
     
     except ExportException as e:

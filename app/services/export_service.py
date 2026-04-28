@@ -1,7 +1,7 @@
 """Export service."""
 import logging
-from pathlib import Path
-from typing import List, Dict, Any
+from io import BytesIO
+from typing import List, Dict, Any, Tuple
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from datetime import datetime
@@ -19,9 +19,9 @@ class ExportService:
         unmatched_previous_rows: List[Dict[str, Any]],
         validation_issues: List[Dict[str, Any]],
         summary: Dict[str, Any],
-    ) -> str:
+    ) -> Tuple[bytes, str]:
         """
-        Create and save an Excel workbook with reconciliation results.
+        Create an Excel workbook with reconciliation results.
         
         Args:
             reconciled_matches: List of reconciled matches
@@ -31,7 +31,7 @@ class ExportService:
             summary: Summary statistics
             
         Returns:
-            str: Path to created file
+            Tuple[bytes, str]: Workbook bytes and generated file name
         """
         logger.info("Creating export workbook")
         
@@ -64,12 +64,14 @@ class ExportService:
         # Save workbook
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_name = f"reconciliation_export_{timestamp}.xlsx"
-        file_path = Path(file_name).absolute()
-        
-        wb.save(str(file_path))
-        logger.info(f"Export saved: {file_path}")
-        
-        return str(file_path)
+
+        buffer = BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+
+        logger.info("Export workbook generated in memory: %s", file_name)
+
+        return buffer.getvalue(), file_name
     
     @staticmethod
     def _create_summary_sheet(wb, summary, header_fill, header_font, summary_fill, summary_font, border):
