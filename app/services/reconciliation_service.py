@@ -10,22 +10,22 @@ class ReconciliationService:
     
     @staticmethod
     def calculate_wip_impact(
-        current_closing: float,
-        previous_closing: float
+        current_additions: float,
+        previous_additions: float
     ) -> float:
         """
         Calculate WIP Impact.
         
-        WIP Impact = Current Year Closing Balance - Previous Year Closing Balance
+        WIP Impact = Current Year Additions - Previous Year Additions
         
         Args:
-            current_closing: Current year "As on 31 Mar" value
-            previous_closing: Previous year "Closing Balance" value
+            current_additions: Current year "Additions" value
+            previous_additions: Previous year "Additions" value
             
         Returns:
             float: WIP Impact
         """
-        return current_closing - previous_closing
+        return current_additions - previous_additions
     
     @staticmethod
     def calculate_far_impact(
@@ -61,14 +61,14 @@ class ReconciliationService:
         Returns:
             Dict with wip_impact and far_impact
         """
-        current_closing = current_values.get("closing_balance", 0.0)
-        previous_closing = previous_values.get("closing_balance", 0.0)
+        current_additions = current_values.get("additions", 0.0)
+        previous_additions = previous_values.get("additions", 0.0)
         
         current_transfer = current_values.get("transfer", 0.0)
         previous_transfer = previous_values.get("transfer", 0.0)
         
         wip_impact = ReconciliationService.calculate_wip_impact(
-            current_closing, previous_closing
+            current_additions, previous_additions
         )
         far_impact = ReconciliationService.calculate_far_impact(
             current_transfer, previous_transfer
@@ -157,9 +157,11 @@ class ReconciliationService:
         total_wip = sum(m.get("wip_impact", 0.0) for m in reconciled_matches)
         total_far = sum(m.get("far_impact", 0.0) for m in reconciled_matches)
 
-        total_matched = sum(1 for m in reconciled_matches if m.get("match_status") == "matched")
-        total_unmatched_current = sum(1 for m in reconciled_matches if m.get("match_status") == "unmatched_current")
-        total_unmatched_previous = sum(1 for m in reconciled_matches if m.get("match_status") == "unmatched_previous")
+        # If match_status is not present, treat entries as matched by default
+        total_matched = sum(1 for m in reconciled_matches if m.get("match_status", "matched") == "matched")
+        # Derive unmatched counts from totals to be robust when match_status is absent
+        total_unmatched_current = all_current_rows - total_matched
+        total_unmatched_previous = all_previous_rows - total_matched
         
         return {
             "total_current_rows": all_current_rows,

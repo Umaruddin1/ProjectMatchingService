@@ -182,17 +182,26 @@ async def reconcile(request: ReconcileRequest) -> ReconcileResponse:
                 row for row in request.previous_year_rows if row.row_number not in matched_previous_rows
             ]
         
+        # Build summary counts independent of whether unmatched rows are included in response
+        total_current = len(request.current_year_rows)
+        total_previous = len(request.previous_year_rows)
+        total_matched_count = len(matched_current_rows)
+        total_unmatched_current_count = max(0, total_current - total_matched_count)
+        total_unmatched_previous_count = max(0, total_previous - len(matched_previous_rows))
+        total_unmatched_count = total_unmatched_current_count + total_unmatched_previous_count
+
         response = ReconcileResponse(
             success=True,
             reconciled_matches=reconciled_matches,
-            unmatched_current_rows=[row.model_dump() if hasattr(row, "model_dump") else row.dict() for row in unmatched_current_rows],
-            unmatched_previous_rows=[row.model_dump() if hasattr(row, "model_dump") else row.dict() for row in unmatched_previous_rows],
-            total_current_rows=len(request.current_year_rows),
-            total_previous_rows=len(request.previous_year_rows),
-            total_matched=len(matched_current_rows),
-            total_unmatched=len(unmatched_current_rows) + len(unmatched_previous_rows),
-            total_unmatched_current=len(unmatched_current_rows),
-            total_unmatched_previous=len(unmatched_previous_rows),
+            # Include full unmatched row objects only when requested (avoids heavy payloads)
+            unmatched_current_rows=[row.model_dump() if hasattr(row, "model_dump") else row.dict() for row in unmatched_current_rows] if request.include_unmatched_rows else [],
+            unmatched_previous_rows=[row.model_dump() if hasattr(row, "model_dump") else row.dict() for row in unmatched_previous_rows] if request.include_unmatched_rows else [],
+            total_current_rows=total_current,
+            total_previous_rows=total_previous,
+            total_matched=total_matched_count,
+            total_unmatched=total_unmatched_count,
+            total_unmatched_current=total_unmatched_current_count,
+            total_unmatched_previous=total_unmatched_previous_count,
             total_wip_impact=total_wip,
             total_far_impact=total_far,
         )

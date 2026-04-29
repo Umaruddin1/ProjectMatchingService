@@ -64,10 +64,10 @@ class NormalizationService:
         # Define fields to extract based on sheet type
         if sheet_type == "current_year":
             field_keys = {
-                "as of 31 mar": "opening_balance",
+                "opening balance": "opening_balance",
                 "additions": "additions",
                 "transfer": "transfer",
-                "as on 31 mar": "closing_balance",
+                "closing balance": "closing_balance",
             }
         else:  # previous_year
             field_keys = {
@@ -115,10 +115,15 @@ class NormalizationService:
             "issues": []
         }
         
+        opening_present = "opening_balance" in row_values
         opening = row_values.get("opening_balance", 0.0)
         additions = row_values.get("additions", 0.0)
         transfer = row_values.get("transfer", 0.0)
         closing = row_values.get("closing_balance", 0.0)
+        
+        # If opening is not present for current year sheet, skip formula validation (some current sheets omit opening)
+        if sheet_type == "current_year" and not opening_present:
+            return result
         
         # Calculate expected closing
         expected_closing = opening + additions - transfer
