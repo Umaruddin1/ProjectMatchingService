@@ -10,22 +10,22 @@ class ReconciliationService:
     
     @staticmethod
     def calculate_wip_impact(
-        current_additions: float,
-        previous_additions: float
+        current_closing: float,
+        previous_closing: float
     ) -> float:
         """
         Calculate WIP Impact.
         
-        WIP Impact = Current Year Additions - Previous Year Additions
+        WIP Impact = Current Year Closing Balance - Previous Year Closing Balance
         
         Args:
-            current_additions: Current year "Additions" value
-            previous_additions: Previous year "Additions" value
+            current_closing: Current year "Closing Balance" value
+            previous_closing: Previous year "Closing Balance" value
             
         Returns:
             float: WIP Impact
         """
-        return current_additions - previous_additions
+        return current_closing - previous_closing
     
     @staticmethod
     def calculate_far_impact(
@@ -61,14 +61,14 @@ class ReconciliationService:
         Returns:
             Dict with wip_impact and far_impact
         """
-        current_additions = current_values.get("additions", 0.0)
-        previous_additions = previous_values.get("additions", 0.0)
+        current_closing = current_values.get("closing_balance", 0.0)
+        previous_closing = previous_values.get("closing_balance", 0.0)
         
         current_transfer = current_values.get("transfer", 0.0)
         previous_transfer = previous_values.get("transfer", 0.0)
         
         wip_impact = ReconciliationService.calculate_wip_impact(
-            current_additions, previous_additions
+            current_closing, previous_closing
         )
         far_impact = ReconciliationService.calculate_far_impact(
             current_transfer, previous_transfer
